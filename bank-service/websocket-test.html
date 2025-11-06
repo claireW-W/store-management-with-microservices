@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Service WebSocket Test Client</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/dist/stomp.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+        }
+        
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        button.connect {
+            background: #28a745;
+            color: white;
+        }
+        
+        button.connect:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40,167,69,0.3);
+        }
+        
+        button.disconnect {
+            background: #dc3545;
+            color: white;
+        }
+        
+        button.disconnect:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220,53,69,0.3);
+        }
+        
+        button.clear {
+            background: #6c757d;
+            color: white;
+        }
+        
+        button.clear:hover {
+            background: #5a6268;
+        }
+        
+        #status {
+            padding: 15px 30px;
+            margin: 0;
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        #status::before {
+            content: '';
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        #status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        #status.connected::before {
+            background: #28a745;
+        }
+        
+        #status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        #status.disconnected::before {
+            background: #dc3545;
+        }
+        
+        #status.connecting {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        #status.connecting::before {
+            background: #ffc107;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        
+        .stats {
+            display: flex;
+            padding: 20px 30px;
+            background: white;
+            border-bottom: 2px solid #e9ecef;
+            gap: 30px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+        
+        .messages-container {
+            padding: 30px;
+        }
+        
+        .messages-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .messages-header h2 {
+            font-size: 1.5em;
+            color: #343a40;
+        }
+        
+        #messages {
+            height: 500px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        #messages::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        #messages::-webkit-scrollbar-track {
+            background: #e9ecef;
+            border-radius: 10px;
+        }
+        
+        #messages::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .message.info {
+            border-left-color: #17a2b8;
+        }
+        
+        .message.balance {
+            border-left-color: #28a745;
+            background: linear-gradient(to right, #d4edda 0%, white 100%);
+        }
+        
+        .message.transaction {
+            border-left-color: #ffc107;
+            background: linear-gradient(to right, #fff3cd 0%, white 100%);
+        }
+        
+        .message-time {
+            font-size: 11px;
+            color: #6c757d;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .message-content {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            color: #343a40;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            opacity: 0.3;
+            margin-bottom: 20px;
+        }
+        
+        .instructions {
+            background: #e7f3ff;
+            padding: 20px;
+            margin: 20px 30px;
+            border-radius: 10px;
+            border-left: 4px solid #0066cc;
+        }
+        
+        .instructions h3 {
+            color: #0066cc;
+            margin-bottom: 10px;
+        }
+        
+        .instructions code {
+            background: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 Bank Service WebSocket Test Client</h1>
+            <p>Real-time Communication Testing for Bank Service</p>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <input type="text" id="customerId" placeholder="Enter Customer ID" value="CUST-001">
+                <button class="connect" onclick="connect()">🔌 Connect</button>
+                <button class="disconnect" onclick="disconnect()">❌ Disconnect</button>
+                <button class="clear" onclick="clearMessages()">🗑️ Clear Messages</button>
+            </div>
+        </div>
+        
+        <div id="status" class="disconnected">Status: Disconnected</div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="messageCount">0</div>
+                <div class="stat-label">Messages Received</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="balanceUpdates">0</div>
+                <div class="stat-label">Balance Updates</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="transactions">0</div>
+                <div class="stat-label">Transactions</div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>📖 How to Test</h3>
+            <p>1. Click <strong>Connect</strong> to establish WebSocket connection</p>
+            <p>2. In a terminal, send a payment request:</p>
+            <code>curl -X POST http://localhost:8082/api/bank/payment -H "Content-Type: application/json" -d "{\"orderId\":\"ORD-TEST\",\"customerId\":\"CUST-001\",\"amount\":50.00,\"currency\":\"AUD\",\"description\":\"Test\"}"</code>
+            <p>3. Watch real-time notifications appear below!</p>
+        </div>
+        
+        <div class="messages-container">
+            <div class="messages-header">
+                <h2>📨 Real-time Messages</h2>
+            </div>
+            <div id="messages">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+                    </svg>
+                    <p>No messages yet. Connect to WebSocket to start receiving real-time notifications.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let stompClient = null;
+        let messageCount = 0;
+        let balanceUpdateCount = 0;
+        let transactionCount = 0;
+
+        function updateStats() {
+            document.getElementById('messageCount').textContent = messageCount;
+            document.getElementById('balanceUpdates').textContent = balanceUpdateCount;
+            document.getElementById('transactions').textContent = transactionCount;
+        }
+
+        function connect() {
+            const customerId = document.getElementById('customerId').value.trim();
+            
+            if (!customerId) {
+                alert('Please enter a Customer ID');
+                return;
+            }
+            
+            const socket = new SockJS('http://localhost:8082/api/ws');
+            stompClient = StompJS.Stomp.over(socket);
+
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = 'Status: Connecting...';
+            statusDiv.className = 'connecting';
+
+            stompClient.connect({}, (frame) => {
+                statusDiv.textContent = 'Status: ✅ Connected';
+                statusDiv.className = 'connected';
+                
+                clearEmptyState();
+                addMessage('info', '✅ Successfully connected to WebSocket server!\n🔔 Subscribed to customer: ' + customerId);
+
+                // Subscribe to balance updates
+                stompClient.subscribe('/user/' + customerId + '/queue/balance', (message) => {
+                    const data = JSON.parse(message.body);
+                    balanceUpdateCount++;
+                    updateStats();
+                    addMessage('balance', 
+                        `💰 BALANCE UPDATE\n\n` +
+                        `Customer ID:   ${data.customerId}\n` +
+                        `Account:       ${data.accountNumber}\n` +
+                        `Old Balance:   ${data.oldBalance} ${data.currency}\n` +
+                        `New Balance:   ${data.newBalance} ${data.currency}\n` +
+                        `Change:        ${data.changeAmount} ${data.currency} (${data.changeType})\n` +
+                        `Transaction:   ${data.transactionId}\n` +
+                        `Reason:        ${data.reason}`
+                    );
+                });
+
+                // Subscribe to transaction notifications
+                stompClient.subscribe('/user/' + customerId + '/queue/transactions', (message) => {
+                    const data = JSON.parse(message.body);
+                    transactionCount++;
+                    updateStats();
+                    addMessage('transaction', 
+                        `📨 TRANSACTION NOTIFICATION\n\n` +
+                        `Transaction ID: ${data.transactionId || 'N/A'}\n` +
+                        `Customer ID:    ${data.customerId}\n` +
+                        `Type:           ${data.transactionType}\n` +
+                        `Amount:         ${data.amount ? data.amount + ' ' + data.currency : 'N/A'}\n` +
+                        `Status:         ${data.status}\n` +
+                        `Order ID:       ${data.orderId || 'N/A'}\n` +
+                        `Message:        ${data.message}\n` +
+                        `Timestamp:      ${data.timestamp}`
+                    );
+                });
+
+                // Subscribe to broadcast
+                stompClient.subscribe('/topic/transactions', (message) => {
+                    const data = JSON.parse(message.body);
+                    addMessage('transaction', 
+                        `📡 BROADCAST NOTIFICATION\n\n` +
+                        JSON.stringify(data, null, 2)
+                    );
+                });
+
+            }, (error) => {
+                statusDiv.textContent = 'Status: ❌ Connection Failed';
+                statusDiv.className = 'disconnected';
+                addMessage('info', '❌ Connection failed: ' + error);
+            });
+        }
+
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+            }
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = 'Status: ❌ Disconnected';
+            statusDiv.className = 'disconnected';
+            addMessage('info', '❌ Disconnected from WebSocket server');
+        }
+
+        function clearEmptyState() {
+            const messagesDiv = document.getElementById('messages');
+            const emptyState = messagesDiv.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+        }
+
+        function addMessage(type, content) {
+            messageCount++;
+            updateStats();
+            
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + type;
+            
+            const time = new Date().toLocaleTimeString();
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = time;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
+            
+            messageDiv.appendChild(timeDiv);
+            messageDiv.appendChild(contentDiv);
+            messagesDiv.appendChild(messageDiv);
+            
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function clearMessages() {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg><p>Messages cleared. Connect to WebSocket to start receiving notifications.</p></div>';
+            messageCount = 0;
+            balanceUpdateCount = 0;
+            transactionCount = 0;
+            updateStats();
+        }
+    </script>
+</body>
+</html>
+

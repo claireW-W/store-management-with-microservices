@@ -1,0 +1,21 @@
+# Ignore build artifacts
+**/build/
+**/target/
+**/node_modules/
+**/.gradle/
+**/gradlew
+**/gradlew.bat
+**/gradle/wrapper/gradle-wrapper.jar
+
+# Ignore logs
+**/*.log
+**/logs/
+
+# Ignore IDE files
+**/.idea/
+**/.vscode/
+**/*.iml
+
+# Ignore OS files
+**/.DS_Store
+**/Thumbs.db

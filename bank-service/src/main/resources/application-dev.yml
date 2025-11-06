@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bank_db
+    username: postgres
+    password: 123
+  
+  rabbitmq:
+    host: vulture.rmq.cloudamqp.com
+    port: 5672
+    username: slrgtxfa
+    password: 1Mc4bs8HwmWiXfyw_oWS2s4vf37XMrXa
+    virtual-host: slrgtxfa
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+logging:
+  level:
+    com.store.bank: DEBUG
+    org.springframework.web: DEBUG

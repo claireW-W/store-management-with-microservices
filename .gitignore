@@ -1,0 +1,107 @@
+# Project Documentation (Excluded from Git)
+API接口清单.md
+ERD图设计.md
+数据库设计文档.md
+项目总结文档.md
+DATABASE_DESIGN_MICROSERVICES.md
+FRONTEND_IMPLEMENTATION_COMPLETE.md
+
+# ERD Diagram Files
+database_er_diagram.puml
+database_er_diagram.png
+database_er_diagram.svg
+database_er_diagram.pdf
+*.puml.png
+*.puml.svg
+
+# Cursor AI Configuration (Excluded from Git)
+.cursor/
+.cursorrules
+AI_CODING_RULES.md
+
+# Backup Files
+backups/
+*.backup
+*_backup.sql
+
+# IDE Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+log/
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+*.tmp
+*.temp
+
+# Docker compose with passwords (keep local version)
+docker-compose.local.yml
+
+# Frontend / Node.js
+node_modules/
+frontend/node_modules/
+frontend/build/
+frontend/.pnp
+frontend/.pnp.js
+frontend/coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Gradle
+.gradle/
+build/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+**/.gradle/
+
+# Maven (Legacy)
+**/target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Spring Boot
+**/*.jar
+**/*.war
+**/*.class
+!**/gradle-wrapper.jar
+!**/maven-wrapper.jar
+
+# Legacy/Deprecated Files
+database_schema.sql
+proj/
