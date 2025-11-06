@@ -183,12 +183,6 @@ The system uses **5 independent PostgreSQL databases** with **21 tables** total:
 
 ---
 
-## 🤝 Contributing
-
-This is a group project for COMP5348. For development guidelines, see individual service README files.
-
----
-
 ## 📄 License
 
 This project is licensed under the MIT License.
